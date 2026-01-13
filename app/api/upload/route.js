@@ -75,7 +75,8 @@ export async function POST(request) {
     await writeFile(filepath, buffer);
 
     // Return the public URL and path info
-    const imageUrl = `/vehicles/${filename}`;
+    // Use API route for serving images (works on all server configurations)
+    const imageUrl = `/api/images/vehicles/${filename}`;
 
     console.log(`📁 Image uploaded: ${filepath}`);
     console.log(`🔗 Public URL: ${imageUrl}`);
