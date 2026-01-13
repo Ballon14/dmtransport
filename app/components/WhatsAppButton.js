@@ -6,7 +6,7 @@ export default function WhatsAppButton() {
   const [isHovered, setIsHovered] = useState(false);
   
   // Nomor WhatsApp CS - ganti dengan nomor yang benar
-  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '6281234567890';
+  const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '6285200008800';
   const message = encodeURIComponent('Halo DM Transport, saya ingin bertanya tentang rental kendaraan.');
   
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;

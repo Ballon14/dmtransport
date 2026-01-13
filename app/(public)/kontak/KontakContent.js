@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 
+// WhatsApp number from environment or fallback
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '6285200008800';
+
 export default function KontakContent() {
   const [formData, setFormData] = useState({
     nama: '',
@@ -12,7 +15,7 @@ export default function KontakContent() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const message = `Halo DM Transport, saya ${formData.nama}.%0A%0A${formData.pesan}%0A%0ATelepon: ${formData.telepon}`;
-    window.open(`https://wa.me/6281234567890?text=${message}`, '_blank');
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
   };
 
   const handleChange = (e) => {
@@ -45,8 +48,7 @@ export default function KontakContent() {
                   <div>
                     <h3 style={styles.contactLabel}>Alamat</h3>
                     <p style={styles.contactValue}>
-                      Jl. Raya Purworejo No. 123<br />
-                      Purworejo, Jawa Tengah 54114
+                      Jl. Kapten Piere Tendean, Rw. VI, Sindurjan, Kec. Purworejo, Kabupaten Purworejo, Jawa Tengah 54113
                     </p>
                   </div>
                 </div>
@@ -55,7 +57,7 @@ export default function KontakContent() {
                   <span style={styles.contactIcon}>📞</span>
                   <div>
                     <h3 style={styles.contactLabel}>Telepon</h3>
-                    <p style={styles.contactValue}>+62 812-3456-7890</p>
+                    <p style={styles.contactValue}>+62 852-0000-8800</p>
                   </div>
                 </div>
 
@@ -63,7 +65,7 @@ export default function KontakContent() {
                   <span style={styles.contactIcon}>💬</span>
                   <div>
                     <h3 style={styles.contactLabel}>WhatsApp</h3>
-                    <p style={styles.contactValue}>+62 812-3456-7890</p>
+                    <p style={styles.contactValue}>+62 852-0000-8800</p>
                   </div>
                 </div>
 
@@ -88,7 +90,7 @@ export default function KontakContent() {
               </div>
 
               <a
-                href="https://wa.me/6281234567890"
+                href={`https://wa.me/${WHATSAPP_NUMBER}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={styles.waButton}
@@ -158,15 +160,15 @@ export default function KontakContent() {
           <div style={styles.mapSection}>
             <h3 style={styles.mapTitle}>📍 Lokasi Kami</h3>
             <div style={styles.mapPlaceholder}>
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31620.53241513587!2d110.0050!3d-7.7100!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7aa3b5aaa8b5a1%3A0x5027a76e3550a60!2sPurworejo%2C%20Jawa%20Tengah!5e0!3m2!1sid!2sid!4v1600000000000!5m2!1sid!2sid"
-                width="100%"
-                height="400"
-                style={{ border: 0, borderRadius: '1rem' }}
-                allowFullScreen=""
-                loading="lazy"
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.7726351156543!2d110.00489387583852!3d-7.707529976349289!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7aebb70a3b7575%3A0x9e674442a557a1d2!2sDm%20transport!5e0!3m2!1sid!2sid!4v1768315095594!5m2!1sid!2sid" 
+                width="600" 
+                height="450" 
+                style={{ border: 0 }} 
+                allowFullScreen 
+                loading="lazy" 
                 referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
+              />
             </div>
           </div>
         </div>
@@ -182,6 +184,8 @@ const styles = {
   header: {
     background: "linear-gradient(135deg, #1e3a5f 0%, #0f2a4a 100%)",
     padding: "4rem 0",
+    paddingTop: "7rem",
+    marginTop: "-80px",
     textAlign: "center",
   },
   container: {

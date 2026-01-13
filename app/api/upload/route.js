@@ -57,24 +57,37 @@ export async function POST(request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Generate unique filename
-    const ext = file.name.split('.').pop();
-    const filename = `vehicle-${Date.now()}.${ext}`;
+    // Get vehicle type prefix from form data (optional)
+    const vehicleType = formData.get('type') || 'vehicle';
+    const sanitizedType = vehicleType.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
     
-    // Ensure directory exists
+    // Generate descriptive filename with type prefix
+    const ext = file.name.split('.').pop();
+    const filename = `${sanitizedType}-${Date.now()}.${ext}`;
+    
+    // Define upload directory path
+    // Lokasi: public/vehicles/ (dapat diakses langsung dari browser sebagai /vehicles/*)
     const uploadDir = path.join(process.cwd(), 'public', 'vehicles');
     await mkdir(uploadDir, { recursive: true });
     
-    // Save file
+    // Save file to disk
     const filepath = path.join(uploadDir, filename);
     await writeFile(filepath, buffer);
 
-    // Return the public URL
+    // Return the public URL and path info
     const imageUrl = `/vehicles/${filename}`;
+
+    console.log(`📁 Image uploaded: ${filepath}`);
+    console.log(`🔗 Public URL: ${imageUrl}`);
 
     return NextResponse.json({ 
       success: true, 
-      data: { url: imageUrl }
+      data: { 
+        url: imageUrl,
+        filename: filename,
+        storagePath: 'public/vehicles/',
+        info: 'Gambar disimpan di folder public/vehicles/ dan dapat diakses lewat URL'
+      }
     });
   } catch (error) {
     console.error('Error uploading file:', error);

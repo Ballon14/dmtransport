@@ -67,12 +67,22 @@ export async function POST(req) {
       startDate,
       endDate,
       notes,
+      deliveryOption,
+      deliveryAddress,
     } = body;
 
     // Validate required fields
     if (!vehicleId || !customerName || !customerPhone || !startDate || !endDate) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Validate delivery address if delivery option is selected
+    if (deliveryOption === 'delivery' && !deliveryAddress) {
+      return NextResponse.json(
+        { success: false, error: 'Alamat pengantaran harus diisi' },
         { status: 400 }
       );
     }
@@ -110,7 +120,11 @@ export async function POST(req) {
     const end = new Date(endDate);
     const diffTime = Math.abs(end - start);
     const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-    const totalPrice = totalDays * vehicle.price;
+    
+    // Delivery cost: Rp 50.000 for delivery option
+    const deliveryCost = deliveryOption === 'delivery' ? 50000 : 0;
+    const rentalPrice = totalDays * vehicle.price;
+    const totalPrice = rentalPrice + deliveryCost;
 
     // Create booking
     const booking = await Booking.create({
@@ -119,6 +133,7 @@ export async function POST(req) {
       vehicleId: vehicle._id,
       vehicleName: vehicle.name,
       vehicleType: vehicle.type,
+      vehicleImage: vehicle.image || '',
       customerName,
       customerPhone,
       customerAddress: customerAddress || '',
@@ -126,6 +141,9 @@ export async function POST(req) {
       endDate: end,
       totalDays,
       pricePerDay: vehicle.price,
+      deliveryOption: deliveryOption || 'self_pickup',
+      deliveryCost,
+      deliveryAddress: deliveryAddress || '',
       totalPrice,
       notes: notes || '',
       status: 'pending',

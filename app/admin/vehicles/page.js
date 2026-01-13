@@ -49,6 +49,7 @@ export default function VehiclesPage() {
       if (imageFile) {
         const uploadFormData = new FormData();
         uploadFormData.append('file', imageFile);
+        uploadFormData.append('type', formData.type); // Send type for descriptive filename
         
         const uploadRes = await fetch('/api/upload', {
           method: 'POST',
@@ -279,6 +280,9 @@ export default function VehiclesPage() {
                     </label>
                   )}
                 </div>
+                <p style={styles.uploadInfo}>
+                  📁 Lokasi penyimpanan: <code>public/vehicles/</code>
+                </p>
               </div>
 
               <div style={styles.formActions}>
@@ -602,5 +606,14 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  uploadInfo: {
+    fontSize: '0.8rem',
+    color: '#64748b',
+    marginTop: '0.75rem',
+    marginBottom: '0',
+    padding: '0.5rem',
+    background: '#f8fafc',
+    borderRadius: '0.375rem',
   },
 };

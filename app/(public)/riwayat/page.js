@@ -171,6 +171,8 @@ const styles = {
   header: {
     background: 'linear-gradient(135deg, #1e3a5f 0%, #0f2a4a 100%)',
     padding: '4rem 0',
+    paddingTop: '7rem',
+    marginTop: '-80px',
     textAlign: 'center',
   },
   container: { maxWidth: '800px', margin: '0 auto', padding: '0 1.5rem' },

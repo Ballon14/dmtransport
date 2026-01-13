@@ -23,12 +23,40 @@ export default function SewaVehiclePage() {
     startDate: '',
     endDate: '',
     notes: '',
+    deliveryOption: 'self_pickup',
+    deliveryAddress: '',
   });
+  
+  const DELIVERY_COST = 50000; // Rp 50.000
   
   const [calculated, setCalculated] = useState({
     totalDays: 0,
+    rentalPrice: 0,
+    deliveryCost: 0,
     totalPrice: 0,
   });
+
+  // Rental requirements checklist
+  const rentalRequirements = [
+    { id: 'ktp', label: 'Saya akan menyiapkan KTP / SIM asli sebagai jaminan' },
+    { id: 'deposit', label: 'Saya bersedia memberikan uang deposit sesuai ketentuan' },
+    { id: 'condition', label: 'Saya akan menjaga dan mengembalikan kendaraan dalam kondisi baik' },
+    { id: 'fuel', label: 'Saya akan mengembalikan kendaraan dengan bensin penuh' },
+    { id: 'terms', label: 'Saya menyetujui syarat dan ketentuan sewa DM Transport' },
+  ];
+
+  const [checkedRequirements, setCheckedRequirements] = useState({});
+  
+  const allRequirementsChecked = rentalRequirements.every(
+    req => checkedRequirements[req.id]
+  );
+
+  const handleRequirementChange = (id) => {
+    setCheckedRequirements(prev => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   // Redirect if not signed in
   useEffect(() => {
@@ -70,20 +98,24 @@ export default function SewaVehiclePage() {
     }
   }, [params.vehicleId]);
 
-  // Calculate price when dates change
+  // Calculate price when dates or delivery option change
   useEffect(() => {
     if (formData.startDate && formData.endDate && vehicle) {
       const start = new Date(formData.startDate);
       const end = new Date(formData.endDate);
       const diffTime = Math.abs(end - start);
       const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+      const rentalPrice = days * vehicle.price;
+      const deliveryCost = formData.deliveryOption === 'delivery' ? DELIVERY_COST : 0;
       
       setCalculated({
         totalDays: days,
-        totalPrice: days * vehicle.price,
+        rentalPrice,
+        deliveryCost,
+        totalPrice: rentalPrice + deliveryCost,
       });
     }
-  }, [formData.startDate, formData.endDate, vehicle]);
+  }, [formData.startDate, formData.endDate, formData.deliveryOption, vehicle]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -294,6 +326,69 @@ export default function SewaVehiclePage() {
                     </div>
                   </div>
 
+                  {/* Delivery Option */}
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Opsi Pengambilan *</label>
+                    <div style={styles.deliveryOptions}>
+                      <label style={{
+                        ...styles.deliveryOption,
+                        ...(formData.deliveryOption === 'self_pickup' ? styles.deliveryOptionActive : {}),
+                      }}>
+                        <input
+                          type="radio"
+                          name="deliveryOption"
+                          value="self_pickup"
+                          checked={formData.deliveryOption === 'self_pickup'}
+                          onChange={handleChange}
+                          style={styles.radioInput}
+                        />
+                        <div style={styles.deliveryOptionContent}>
+                          <span style={styles.deliveryIcon}>🏠</span>
+                          <div>
+                            <span style={styles.deliveryTitle}>Ambil Sendiri</span>
+                            <span style={styles.deliveryDesc}>Gratis - Ambil di kantor kami</span>
+                          </div>
+                        </div>
+                      </label>
+                      <label style={{
+                        ...styles.deliveryOption,
+                        ...(formData.deliveryOption === 'delivery' ? styles.deliveryOptionActive : {}),
+                      }}>
+                        <input
+                          type="radio"
+                          name="deliveryOption"
+                          value="delivery"
+                          checked={formData.deliveryOption === 'delivery'}
+                          onChange={handleChange}
+                          style={styles.radioInput}
+                        />
+                        <div style={styles.deliveryOptionContent}>
+                          <span style={styles.deliveryIcon}>🚚</span>
+                          <div>
+                            <span style={styles.deliveryTitle}>Antar & Jemput</span>
+                            <span style={styles.deliveryDesc}>+Rp 50.000 - Diantar ke lokasi Anda</span>
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Delivery Address (shown only when delivery is selected) */}
+                  {formData.deliveryOption === 'delivery' && (
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>Alamat Pengantaran *</label>
+                      <textarea
+                        name="deliveryAddress"
+                        value={formData.deliveryAddress}
+                        onChange={handleChange}
+                        rows={2}
+                        required
+                        style={styles.textarea}
+                        placeholder="Masukkan alamat lengkap untuk pengantaran dan penjemputan"
+                      />
+                    </div>
+                  )}
+
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Catatan</label>
                     <textarea
@@ -314,8 +409,16 @@ export default function SewaVehiclePage() {
                         <span>{calculated.totalDays} hari</span>
                       </div>
                       <div style={styles.summaryRow}>
-                        <span>Harga per hari</span>
-                        <span>Rp {vehicle?.price?.toLocaleString('id-ID')}</span>
+                        <span>Harga Sewa ({calculated.totalDays} x Rp {vehicle?.price?.toLocaleString('id-ID')})</span>
+                        <span>Rp {calculated.rentalPrice.toLocaleString('id-ID')}</span>
+                      </div>
+                      <div style={styles.summaryRow}>
+                        <span>Biaya Pengiriman</span>
+                        <span style={{ color: calculated.deliveryCost > 0 ? '#ea580c' : '#22c55e' }}>
+                          {calculated.deliveryCost > 0 
+                            ? `Rp ${calculated.deliveryCost.toLocaleString('id-ID')}` 
+                            : 'Gratis'}
+                        </span>
                       </div>
                       <div style={styles.summaryTotal}>
                         <span>Total Pembayaran</span>
@@ -326,12 +429,48 @@ export default function SewaVehiclePage() {
                     </div>
                   )}
 
+                  {/* Requirements Checklist */}
+                  <div style={styles.requirementsSection}>
+                    <h4 style={styles.requirementsTitle}>
+                      ✅ Persyaratan Rental
+                    </h4>
+                    <p style={styles.requirementsSubtitle}>
+                      Centang semua persyaratan sebelum melanjutkan
+                    </p>
+                    <div style={styles.requirementsList}>
+                      {rentalRequirements.map((req) => (
+                        <label key={req.id} style={styles.requirementItem}>
+                          <input
+                            type="checkbox"
+                            checked={checkedRequirements[req.id] || false}
+                            onChange={() => handleRequirementChange(req.id)}
+                            style={styles.checkbox}
+                          />
+                          <span style={{
+                            ...styles.checkboxCustom,
+                            background: checkedRequirements[req.id] ? '#22c55e' : 'white',
+                            borderColor: checkedRequirements[req.id] ? '#22c55e' : '#d4d4d8',
+                          }}>
+                            {checkedRequirements[req.id] && '✓'}
+                          </span>
+                          <span style={styles.requirementLabel}>{req.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {!allRequirementsChecked && calculated.totalDays > 0 && (
+                      <p style={styles.requirementsWarning}>
+                        ⚠️ Harap centang semua persyaratan untuk melanjutkan
+                      </p>
+                    )}
+                  </div>
+
                   <button
                     type="submit"
-                    disabled={submitting || calculated.totalDays === 0}
+                    disabled={submitting || calculated.totalDays === 0 || !allRequirementsChecked}
                     style={{
                       ...styles.submitBtn,
-                      opacity: submitting || calculated.totalDays === 0 ? 0.7 : 1,
+                      opacity: submitting || calculated.totalDays === 0 || !allRequirementsChecked ? 0.7 : 1,
+                      cursor: submitting || calculated.totalDays === 0 || !allRequirementsChecked ? 'not-allowed' : 'pointer',
                     }}
                   >
                     {submitting ? 'Memproses...' : '💳 Bayar Sekarang'}
@@ -358,6 +497,8 @@ const styles = {
   header: {
     background: 'linear-gradient(135deg, #1e3a5f 0%, #0f2a4a 100%)',
     padding: '4rem 0',
+    paddingTop: '7rem',
+    marginTop: '-80px',
     textAlign: 'center',
   },
   container: {
@@ -511,6 +652,51 @@ const styles = {
     resize: 'vertical',
     fontFamily: 'inherit',
   },
+  deliveryOptions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+  },
+  deliveryOption: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '1rem 1.25rem',
+    borderRadius: '0.75rem',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+    borderColor: '#e2e8f0',
+    background: 'white',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  deliveryOptionActive: {
+    borderColor: '#f97316',
+    background: '#fff7ed',
+  },
+  radioInput: {
+    display: 'none',
+  },
+  deliveryOptionContent: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    width: '100%',
+  },
+  deliveryIcon: {
+    fontSize: '1.75rem',
+  },
+  deliveryTitle: {
+    display: 'block',
+    fontSize: '1rem',
+    fontWeight: '600',
+    color: '#0f172a',
+  },
+  deliveryDesc: {
+    display: 'block',
+    fontSize: '0.85rem',
+    color: '#64748b',
+    marginTop: '0.125rem',
+  },
   summary: {
     background: '#f8fafc',
     borderRadius: '0.75rem',
@@ -537,6 +723,70 @@ const styles = {
     fontSize: '1.25rem',
     fontWeight: '800',
     color: '#ea580c',
+  },
+  requirementsSection: {
+    background: '#fefce8',
+    border: '1px solid #fef08a',
+    borderRadius: '0.75rem',
+    padding: '1.25rem',
+    marginTop: '1rem',
+  },
+  requirementsTitle: {
+    fontSize: '1rem',
+    fontWeight: '700',
+    color: '#854d0e',
+    margin: '0 0 0.25rem 0',
+  },
+  requirementsSubtitle: {
+    fontSize: '0.85rem',
+    color: '#a16207',
+    margin: '0 0 1rem 0',
+  },
+  requirementsList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+  },
+  requirementItem: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '0.75rem',
+    cursor: 'pointer',
+    padding: '0.5rem',
+    borderRadius: '0.5rem',
+    transition: 'background 0.2s',
+  },
+  checkbox: {
+    display: 'none',
+  },
+  checkboxCustom: {
+    width: '22px',
+    height: '22px',
+    minWidth: '22px',
+    borderRadius: '0.375rem',
+    border: '2px solid #d4d4d8',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.85rem',
+    fontWeight: '700',
+    color: 'white',
+    background: '#22c55e',
+    transition: 'all 0.2s',
+  },
+  requirementLabel: {
+    fontSize: '0.9rem',
+    color: '#374151',
+    lineHeight: '1.4',
+  },
+  requirementsWarning: {
+    fontSize: '0.85rem',
+    color: '#dc2626',
+    marginTop: '1rem',
+    marginBottom: '0',
+    padding: '0.5rem',
+    background: '#fef2f2',
+    borderRadius: '0.5rem',
   },
   submitBtn: {
     background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',

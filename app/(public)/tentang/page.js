@@ -165,6 +165,8 @@ const styles = {
   header: {
     background: "#0f172a",
     padding: "5rem 0 6rem",
+    paddingTop: "8rem",
+    marginTop: "-80px",
     position: "relative",
     overflow: "hidden",
   },

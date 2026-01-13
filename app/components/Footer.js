@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
+// WhatsApp number from environment or fallback
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '6285200008800';
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -56,7 +59,7 @@ export default function Footer() {
                 Penyedia jasa penyewaan kendaraan terpercaya sejak 2012. Solusi transportasi untuk kebutuhan pribadi, bisnis, dan wisata.
               </p>
               <div style={styles.socialLinks}>
-                <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" style={styles.socialLink}>
+                <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" style={styles.socialLink}>
                   💬
                 </a>
                 <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" style={styles.socialLink}>
@@ -100,11 +103,11 @@ export default function Footer() {
               <div style={styles.contactList}>
                 <div style={styles.contactItem}>
                   <span style={styles.contactIcon}>📍</span>
-                  <span>Jl. Raya Purworejo No. 123, Purworejo, Jawa Tengah</span>
+                  <span>Jl. Kapten Piere Tendean, Rw. VI, Sindurjan, Kec. Purworejo, Kabupaten Purworejo, Jawa Tengah 54113</span>
                 </div>
                 <div style={styles.contactItem}>
                   <span style={styles.contactIcon}>📞</span>
-                  <span>+62 812-3456-7890</span>
+                  <span>+62 852-0000-8800</span>
                 </div>
                 <div style={styles.contactItem}>
                   <span style={styles.contactIcon}>✉️</span>

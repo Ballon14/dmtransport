@@ -1,10 +1,7 @@
 import Link from 'next/link';
 
 export default function VehicleCard({ vehicle }) {
-  const isMotor = vehicle.type?.toLowerCase().includes('motor') || 
-                  vehicle.type?.toLowerCase().includes('matic') || 
-                  vehicle.type?.toLowerCase().includes('sport') ||
-                  vehicle.type?.toLowerCase().includes('adventure');
+  const isMotor = vehicle.type === 'motor';
 
   return (
     <div style={styles.card}>

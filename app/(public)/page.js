@@ -31,33 +31,11 @@ const features = [
   },
 ];
 
-const testimonials = [
-  {
-    name: "Budi Santoso",
-    role: "Pengusaha",
-    text: "Pelayanan sangat memuaskan! Mobil bersih dan terawat. Pasti akan sewa lagi di DM Transport.",
-    rating: 5,
-    avatar: "B",
-  },
-  {
-    name: "Siti Rahayu",
-    role: "Karyawan Swasta",
-    text: "Harga terjangkau dan proses sewa cepat. Recommended banget untuk rental di Purworejo!",
-    rating: 5,
-    avatar: "S",
-  },
-  {
-    name: "Ahmad Fauzi",
-    role: "Mahasiswa",
-    text: "Motor NMAX nya keren dan nyaman. Cocok buat touring. Terima kasih DM Transport!",
-    rating: 5,
-    avatar: "A",
-  },
-];
 
 export default function Home() {
   const [cars, setCars] = useState([]);
   const [motors, setMotors] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalVehicles: 0,
@@ -91,7 +69,20 @@ export default function Home() {
       }
     }
     
+    async function fetchTestimonials() {
+      try {
+        const res = await fetch('/api/testimonials');
+        const data = await res.json();
+        if (data.success) {
+          setTestimonials(data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching testimonials:', err);
+      }
+    }
+    
     fetchVehicles();
+    fetchTestimonials();
   }, []);
 
   const displayStats = [
@@ -260,7 +251,7 @@ export default function Home() {
           </div>
           
           <div style={styles.testimonialGrid}>
-            {testimonials.map((item, index) => (
+            {testimonials.length > 0 ? testimonials.map((item, index) => (
               <div key={index} style={styles.testimonialCard}>
                 <div style={styles.testimonialQuote}>"</div>
                 <div style={styles.testimonialStars}>
@@ -269,7 +260,7 @@ export default function Home() {
                 <p style={styles.testimonialText}>{item.text}</p>
                 <div style={styles.testimonialAuthor}>
                   <div style={styles.testimonialAvatar}>
-                    {item.avatar}
+                    {item.name?.charAt(0) || 'P'}
                   </div>
                   <div style={styles.testimonialInfo}>
                     <span style={styles.testimonialName}>{item.name}</span>
@@ -277,7 +268,9 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <p style={styles.emptyText}>Belum ada testimoni tersedia</p>
+            )}
           </div>
         </div>
       </section>
@@ -323,6 +316,8 @@ const styles = {
     justifyContent: "center",
     background: "#0f172a",
     overflow: "hidden",
+    marginTop: "-80px",
+    paddingTop: "80px",
   },
   heroBackground: {
     position: "absolute",

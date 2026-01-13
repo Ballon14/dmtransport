@@ -375,7 +375,7 @@ const styles = {
   },
   statsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
     gap: '1rem',
     marginBottom: '2rem',
   },
@@ -386,7 +386,10 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '1rem',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    borderWidth: '1px',
+    borderStyle: 'solid',
+    borderColor: '#e2e8f0',
   },
   statIcon: {
     width: '48px',
@@ -422,7 +425,7 @@ const styles = {
   },
   bookingStatsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
     gap: '1rem',
     marginBottom: '2rem',
   },
@@ -445,7 +448,7 @@ const styles = {
   },
   chatStatsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+    gridTemplateColumns: 'repeat(2, minmax(180px, 250px))',
     gap: '1rem',
     marginBottom: '2rem',
   },
