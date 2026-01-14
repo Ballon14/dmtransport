@@ -54,22 +54,6 @@ export default function KontakContent() {
                 </div>
 
                 <div style={styles.contactItem}>
-                  <span style={styles.contactIcon}>📞</span>
-                  <div>
-                    <h3 style={styles.contactLabel}>Telepon</h3>
-                    <p style={styles.contactValue}>+62 852-0000-8800</p>
-                  </div>
-                </div>
-
-                <div style={styles.contactItem}>
-                  <span style={styles.contactIcon}>💬</span>
-                  <div>
-                    <h3 style={styles.contactLabel}>WhatsApp</h3>
-                    <p style={styles.contactValue}>+62 852-0000-8800</p>
-                  </div>
-                </div>
-
-                <div style={styles.contactItem}>
                   <span style={styles.contactIcon}>✉️</span>
                   <div>
                     <h3 style={styles.contactLabel}>Email</h3>
@@ -89,14 +73,49 @@ export default function KontakContent() {
                 </div>
               </div>
 
-              <a
-                href={`https://wa.me/${WHATSAPP_NUMBER}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={styles.waButton}
-              >
-                💬 Chat WhatsApp Langsung
-              </a>
+              {/* Admin WhatsApp Cards */}
+              <h3 style={styles.adminSectionTitle}>💬 Hubungi Admin via WhatsApp</h3>
+              <div style={styles.adminCards}>
+                <a
+                  href="https://wa.me/6285200008800"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={styles.adminCard}
+                >
+                  <div style={styles.adminAvatar}>👤</div>
+                  <div style={styles.adminInfo}>
+                    <span style={styles.adminName}>Admin 1</span>
+                    <span style={styles.adminPhone}>0852-0000-8800</span>
+                  </div>
+                  <span style={styles.waIconCard}>💬</span>
+                </a>
+                <a
+                  href="https://wa.me/6282136395758"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={styles.adminCard}
+                >
+                  <div style={styles.adminAvatar}>👤</div>
+                  <div style={styles.adminInfo}>
+                    <span style={styles.adminName}>Admin 2</span>
+                    <span style={styles.adminPhone}>0821-3639-5758</span>
+                  </div>
+                  <span style={styles.waIconCard}>💬</span>
+                </a>
+                <a
+                  href="https://wa.me/6285945451616"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={styles.adminCard}
+                >
+                  <div style={styles.adminAvatar}>👤</div>
+                  <div style={styles.adminInfo}>
+                    <span style={styles.adminName}>Admin 3</span>
+                    <span style={styles.adminPhone}>0859-4545-1616</span>
+                  </div>
+                  <span style={styles.waIconCard}>💬</span>
+                </a>
+              </div>
             </div>
 
             {/* Contact Form */}
@@ -156,18 +175,17 @@ export default function KontakContent() {
             </div>
           </div>
 
-          {/* Map placeholder */}
+          {/* Map Section */}
           <div style={styles.mapSection}>
             <h3 style={styles.mapTitle}>📍 Lokasi Kami</h3>
-            <div style={styles.mapPlaceholder}>
+            <div style={styles.mapWrapper}>
               <iframe 
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.7726351156543!2d110.00489387583852!3d-7.707529976349289!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7aebb70a3b7575%3A0x9e674442a557a1d2!2sDm%20transport!5e0!3m2!1sid!2sid!4v1768315095594!5m2!1sid!2sid" 
-                width="600" 
-                height="450" 
-                style={{ border: 0 }} 
+                style={styles.mapIframe}
                 allowFullScreen 
                 loading="lazy" 
                 referrerPolicy="no-referrer-when-downgrade"
+                title="Lokasi DM Transport"
               />
             </div>
           </div>
@@ -268,6 +286,57 @@ const styles = {
     fontWeight: "600",
     fontSize: "1rem",
   },
+  adminSectionTitle: {
+    fontSize: "1rem",
+    fontWeight: "600",
+    color: "#1e3a5f",
+    marginBottom: "1rem",
+    marginTop: "0.5rem",
+  },
+  adminCards: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.75rem",
+  },
+  adminCard: {
+    display: "flex",
+    alignItems: "center",
+    gap: "1rem",
+    padding: "1rem",
+    background: "white",
+    borderRadius: "0.75rem",
+    textDecoration: "none",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+    border: "1px solid #e2e8f0",
+    transition: "all 0.2s ease",
+  },
+  adminAvatar: {
+    width: "42px",
+    height: "42px",
+    background: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "1.25rem",
+  },
+  adminInfo: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+  },
+  adminName: {
+    fontWeight: "600",
+    color: "#0f172a",
+    fontSize: "0.95rem",
+  },
+  adminPhone: {
+    color: "#64748b",
+    fontSize: "0.85rem",
+  },
+  waIconCard: {
+    fontSize: "1.5rem",
+  },
   formSection: {
     background: "white",
     border: "1px solid #e2e8f0",
@@ -329,6 +398,7 @@ const styles = {
   },
   mapSection: {
     textAlign: "center",
+    marginTop: "2rem",
   },
   mapTitle: {
     fontSize: "1.5rem",
@@ -336,8 +406,16 @@ const styles = {
     color: "#1e3a5f",
     marginBottom: "1.5rem",
   },
-  mapPlaceholder: {
+  mapWrapper: {
     borderRadius: "1rem",
     overflow: "hidden",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+    border: "1px solid #e2e8f0",
+  },
+  mapIframe: {
+    width: "100%",
+    height: "400px",
+    border: 0,
+    display: "block",
   },
 };
