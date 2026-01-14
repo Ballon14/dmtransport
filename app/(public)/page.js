@@ -6,30 +6,51 @@ import VehicleCard from "../components/VehicleCard";
 
 const features = [
   {
-    icon: "🚗",
+    icon: "car",
     title: "Armada Terawat",
     description: "Semua kendaraan dalam kondisi prima dan terawat untuk kenyamanan Anda.",
-    gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+    color: "#3b82f6",
   },
   {
-    icon: "💰",
+    icon: "wallet",
     title: "Harga Terjangkau",
     description: "Harga sewa kompetitif tanpa mengorbankan kualitas layanan.",
-    gradient: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+    color: "#22c55e",
   },
   {
-    icon: "⏰",
+    icon: "clock",
     title: "Layanan 24 Jam",
     description: "Tim kami siap melayani kebutuhan rental Anda kapan saja.",
-    gradient: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
-  },
-  {
-    icon: "📍",
-    title: "Antar Jemput",
-    description: "Layanan antar jemput gratis untuk area Purworejo dan sekitarnya.",
-    gradient: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+    color: "#f97316",
   },
 ];
+
+// Feature Icons as SVG
+const FeatureIcon = ({ type, color }) => {
+  const icons = {
+    car: (
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C1.4 11.3 1 12.1 1 13v3c0 .6.4 1 1 1h2"/>
+        <circle cx="7" cy="17" r="2"/>
+        <circle cx="17" cy="17" r="2"/>
+      </svg>
+    ),
+    wallet: (
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+        <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+        <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/>
+      </svg>
+    ),
+    clock: (
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+    ),
+  };
+  return icons[type] || null;
+};
 
 
 export default function Home() {
@@ -228,8 +249,8 @@ export default function Home() {
           <div style={styles.featuresGrid}>
             {features.map((feature, index) => (
               <div key={index} style={styles.featureCard}>
-                <div style={{ ...styles.featureIconWrapper, background: feature.gradient }}>
-                  <span style={styles.featureIcon}>{feature.icon}</span>
+                <div style={{ ...styles.featureIconWrapper, background: `${feature.color}15` }}>
+                  <FeatureIcon type={feature.icon} color={feature.color} />
                 </div>
                 <h3 style={styles.featureTitle}>{feature.title}</h3>
                 <p style={styles.featureDesc}>{feature.description}</p>
@@ -606,40 +627,40 @@ const styles = {
   },
   featuresGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+    gridTemplateColumns: "repeat(3, 1fr)",
     gap: "2rem",
+    maxWidth: "1000px",
+    margin: "0 auto",
   },
   featureCard: {
     background: "white",
     padding: "2.5rem 2rem",
-    borderRadius: "1.5rem",
+    borderRadius: "1.25rem",
     textAlign: "center",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
-    border: "1px solid #e2e8f0",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+    border: "1px solid #f1f5f9",
+    transition: "all 0.3s ease",
   },
   featureIconWrapper: {
-    width: "70px",
-    height: "70px",
+    width: "72px",
+    height: "72px",
     borderRadius: "1rem",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     margin: "0 auto 1.5rem",
-    boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-  },
-  featureIcon: {
-    fontSize: "2rem",
-    filter: "brightness(0) invert(1)",
   },
   featureTitle: {
     fontSize: "1.25rem",
     fontWeight: "700",
     color: "#0f172a",
-    marginBottom: "0.875rem",
+    marginBottom: "0.75rem",
+    margin: "0 0 0.75rem 0",
   },
   featureDesc: {
     color: "#64748b",
     fontSize: "0.95rem",
+    lineHeight: "1.6",
     margin: 0,
   },
 
