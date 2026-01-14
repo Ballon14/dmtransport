@@ -7,7 +7,6 @@ const infoItems = [
   { icon: "⏱️", text: "Durasi sewa minimal 12 jam" },
   { icon: "👤", text: "Sewa dengan/tanpa sopir tersedia" },
   { icon: "🪪", text: "Deposit: KTP/SIM + uang jaminan" },
-  { icon: "🚗", text: "Antar jemput gratis area Purworejo" },
   { icon: "💰", text: "Diskon sewa mingguan/bulanan" },
 ];
 
