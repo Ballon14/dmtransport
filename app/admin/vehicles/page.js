@@ -14,7 +14,12 @@ export default function VehiclesPage() {
     name: '',
     type: 'mobil',
     category: '',
-    price: '',
+    // Motor pricing
+    priceInCity: '',
+    priceOutCity: '',
+    // Mobil pricing
+    price12h: '',
+    price24h: '',
     specs: '',
     image: '',
     available: true,
@@ -70,7 +75,12 @@ export default function VehiclesPage() {
       const vehicleData = {
         ...formData,
         image: imageUrl,
-        price: Number(formData.price),
+        // Motor pricing
+        priceInCity: formData.type === 'motor' ? Number(formData.priceInCity) : 0,
+        priceOutCity: formData.type === 'motor' ? Number(formData.priceOutCity) : 0,
+        // Mobil pricing
+        price12h: formData.type === 'mobil' ? Number(formData.price12h) : 0,
+        price24h: formData.type === 'mobil' ? Number(formData.price24h) : 0,
         specs: formData.specs.split(',').map(s => s.trim()).filter(Boolean),
       };
 
@@ -123,7 +133,10 @@ export default function VehiclesPage() {
       name: vehicle.name,
       type: vehicle.type,
       category: vehicle.category,
-      price: vehicle.price,
+      priceInCity: vehicle.priceInCity || '',
+      priceOutCity: vehicle.priceOutCity || '',
+      price12h: vehicle.price12h || '',
+      price24h: vehicle.price24h || '',
       specs: vehicle.specs?.join(', ') || '',
       image: vehicle.image || '',
       available: vehicle.available,
@@ -142,7 +155,10 @@ export default function VehiclesPage() {
       name: '',
       type: 'mobil',
       category: '',
-      price: '',
+      priceInCity: '',
+      priceOutCity: '',
+      price12h: '',
+      price24h: '',
       specs: '',
       image: '',
       available: true,
@@ -216,17 +232,57 @@ export default function VehiclesPage() {
               </div>
 
               <div style={styles.formRow}>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Harga per Hari (Rp)</label>
-                  <input
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    placeholder="350000"
-                    required
-                    style={styles.input}
-                  />
-                </div>
+                {formData.type === 'mobil' ? (
+                  <>
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>Harga per 12 Jam (Rp)</label>
+                      <input
+                        type="number"
+                        value={formData.price12h}
+                        onChange={(e) => setFormData({ ...formData, price12h: e.target.value })}
+                        placeholder="250000"
+                        required
+                        style={styles.input}
+                      />
+                    </div>
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>Harga per 24 Jam (Rp)</label>
+                      <input
+                        type="number"
+                        value={formData.price24h}
+                        onChange={(e) => setFormData({ ...formData, price24h: e.target.value })}
+                        placeholder="400000"
+                        required
+                        style={styles.input}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>Harga Dalam Kota (Rp/hari)</label>
+                      <input
+                        type="number"
+                        value={formData.priceInCity}
+                        onChange={(e) => setFormData({ ...formData, priceInCity: e.target.value })}
+                        placeholder="75000"
+                        required
+                        style={styles.input}
+                      />
+                    </div>
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>Harga Luar Kota (Rp/hari)</label>
+                      <input
+                        type="number"
+                        value={formData.priceOutCity}
+                        onChange={(e) => setFormData({ ...formData, priceOutCity: e.target.value })}
+                        placeholder="100000"
+                        required
+                        style={styles.input}
+                      />
+                    </div>
+                  </>
+                )}
                 <div style={styles.formGroup}>
                   <label style={styles.label}>Tersedia</label>
                   <select
@@ -312,7 +368,7 @@ export default function VehiclesPage() {
                 <div style={styles.tableHeader}>
                   <span style={{ flex: 2 }}>Nama</span>
                   <span style={{ flex: 1 }}>Kategori</span>
-                  <span style={{ flex: 1 }}>Harga/Hari</span>
+                  <span style={{ flex: 1.5 }}>Harga</span>
                   <span style={{ flex: 1 }}>Status</span>
                   <span style={{ flex: 1 }}>Aksi</span>
                 </div>
@@ -320,8 +376,13 @@ export default function VehiclesPage() {
                   <div key={vehicle._id} style={styles.tableRow}>
                     <span style={{ flex: 2, fontWeight: '600' }}>{vehicle.name}</span>
                     <span style={{ flex: 1 }}>{vehicle.category}</span>
-                    <span style={{ flex: 1, color: '#f97316', fontWeight: '600' }}>
-                      Rp {vehicle.price.toLocaleString('id-ID')}
+                    <span style={{ flex: 1.5 }}>
+                      <div style={{ color: '#f97316', fontWeight: '600', fontSize: '0.85rem' }}>
+                        12 jam: Rp {(vehicle.price12h || 0).toLocaleString('id-ID')}
+                      </div>
+                      <div style={{ color: '#22c55e', fontWeight: '600', fontSize: '0.85rem' }}>
+                        24 jam: Rp {(vehicle.price24h || 0).toLocaleString('id-ID')}
+                      </div>
                     </span>
                     <span style={{ flex: 1 }}>
                       <span style={vehicle.available ? styles.badgeAvailable : styles.badgeUnavailable}>
@@ -348,7 +409,7 @@ export default function VehiclesPage() {
                 <div style={styles.tableHeader}>
                   <span style={{ flex: 2 }}>Nama</span>
                   <span style={{ flex: 1 }}>Kategori</span>
-                  <span style={{ flex: 1 }}>Harga/Hari</span>
+                  <span style={{ flex: 1.5 }}>Harga</span>
                   <span style={{ flex: 1 }}>Status</span>
                   <span style={{ flex: 1 }}>Aksi</span>
                 </div>
@@ -356,8 +417,13 @@ export default function VehiclesPage() {
                   <div key={vehicle._id} style={styles.tableRow}>
                     <span style={{ flex: 2, fontWeight: '600' }}>{vehicle.name}</span>
                     <span style={{ flex: 1 }}>{vehicle.category}</span>
-                    <span style={{ flex: 1, color: '#f97316', fontWeight: '600' }}>
-                      Rp {vehicle.price.toLocaleString('id-ID')}
+                    <span style={{ flex: 1.5 }}>
+                      <div style={{ color: '#3b82f6', fontWeight: '600', fontSize: '0.85rem' }}>
+                        Dalam Kota: Rp {(vehicle.priceInCity || 0).toLocaleString('id-ID')}
+                      </div>
+                      <div style={{ color: '#8b5cf6', fontWeight: '600', fontSize: '0.85rem' }}>
+                        Luar Kota: Rp {(vehicle.priceOutCity || 0).toLocaleString('id-ID')}
+                      </div>
                     </span>
                     <span style={{ flex: 1 }}>
                       <span style={vehicle.available ? styles.badgeAvailable : styles.badgeUnavailable}>

@@ -16,7 +16,9 @@ const mimeTypes = {
 export async function GET(request, { params }) {
   try {
     // Get the path from params - it's an array due to [...path]
-    const pathSegments = params.path;
+    // In Next.js 15, params is a Promise and must be awaited
+    const resolvedParams = await params;
+    const pathSegments = resolvedParams.path;
     
     if (!pathSegments || pathSegments.length === 0) {
       return NextResponse.json(

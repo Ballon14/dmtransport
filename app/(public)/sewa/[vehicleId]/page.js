@@ -25,12 +25,15 @@ export default function SewaVehiclePage() {
     notes: '',
     deliveryOption: 'self_pickup',
     deliveryAddress: '',
+    rentalDuration: '24h', // For mobil: '12h' or '24h'
+    rentalZone: 'inCity', // For motor: 'inCity' or 'outCity'
   });
   
   const DELIVERY_COST = 50000; // Rp 50.000
   
   const [calculated, setCalculated] = useState({
     totalDays: 0,
+    rentalUnits: 0, // For mobil: 12-hour periods, for motor: days
     rentalPrice: 0,
     deliveryCost: 0,
     totalPrice: 0,
@@ -105,17 +108,43 @@ export default function SewaVehiclePage() {
       const end = new Date(formData.endDate);
       const diffTime = Math.abs(end - start);
       const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-      const rentalPrice = days * vehicle.price;
+      
+      const isMobil = vehicle.type === 'mobil';
+      let rentalUnits;
+      let unitPrice;
+      
+      if (isMobil) {
+        // For mobil: calculate based on selected duration (12h or 24h)
+        if (formData.rentalDuration === '12h') {
+          rentalUnits = days * 2; // 2 x 12-hour periods per day
+          unitPrice = vehicle.price12h || 0;
+        } else {
+          rentalUnits = days; // 1 x 24-hour period per day
+          unitPrice = vehicle.price24h || 0;
+        }
+      } else {
+        // For motor: calculate based on zone (inCity or outCity)
+        rentalUnits = days;
+        if (formData.rentalZone === 'outCity') {
+          unitPrice = vehicle.priceOutCity || 0;
+        } else {
+          unitPrice = vehicle.priceInCity || 0;
+        }
+      }
+      
+      const rentalPrice = rentalUnits * unitPrice;
       const deliveryCost = formData.deliveryOption === 'delivery' ? DELIVERY_COST : 0;
       
       setCalculated({
         totalDays: days,
+        rentalUnits,
+        unitPrice,
         rentalPrice,
         deliveryCost,
         totalPrice: rentalPrice + deliveryCost,
       });
     }
-  }, [formData.startDate, formData.endDate, formData.deliveryOption, vehicle]);
+  }, [formData.startDate, formData.endDate, formData.deliveryOption, formData.rentalDuration, formData.rentalZone, vehicle]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -244,10 +273,37 @@ export default function SewaVehiclePage() {
                     ))}
                   </div>
                   <div style={styles.priceBox}>
-                    <span style={styles.priceLabel}>Harga per hari</span>
-                    <span style={styles.priceValue}>
-                      Rp {vehicle?.price?.toLocaleString('id-ID')}
-                    </span>
+                    {vehicle?.type === 'mobil' ? (
+                      <>
+                        <div style={styles.priceRowContainer}>
+                          <span style={styles.priceLabelSmall}>12 jam:</span>
+                          <span style={styles.priceValueSmall}>
+                            Rp {(vehicle?.price12h || 0).toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                        <div style={styles.priceRowContainer}>
+                          <span style={styles.priceLabelSmall}>24 jam:</span>
+                          <span style={styles.priceValueSmall24h}>
+                            Rp {(vehicle?.price24h || 0).toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div style={styles.priceRowContainer}>
+                          <span style={styles.priceLabelSmall}>Dalam Kota:</span>
+                          <span style={styles.priceValueSmallInCity}>
+                            Rp {(vehicle?.priceInCity || 0).toLocaleString('id-ID')}/hari
+                          </span>
+                        </div>
+                        <div style={styles.priceRowContainer}>
+                          <span style={styles.priceLabelSmall}>Luar Kota:</span>
+                          <span style={styles.priceValueSmallOutCity}>
+                            Rp {(vehicle?.priceOutCity || 0).toLocaleString('id-ID')}/hari
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -326,6 +382,103 @@ export default function SewaVehiclePage() {
                     </div>
                   </div>
 
+                  {/* Duration Option for Mobil */}
+                  {vehicle?.type === 'mobil' && (
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>Durasi Sewa per Hari *</label>
+                      <div style={styles.deliveryOptions}>
+                        <label style={{
+                          ...styles.deliveryOption,
+                          ...(formData.rentalDuration === '12h' ? styles.deliveryOptionActive : {}),
+                        }}>
+                          <input
+                            type="radio"
+                            name="rentalDuration"
+                            value="12h"
+                            checked={formData.rentalDuration === '12h'}
+                            onChange={handleChange}
+                            style={styles.radioInput}
+                          />
+                          <div style={styles.deliveryOptionContent}>
+                            <span style={styles.deliveryIcon}>⏱️</span>
+                            <div>
+                              <span style={styles.deliveryTitle}>12 Jam</span>
+                              <span style={styles.deliveryDesc}>Rp {(vehicle?.price12h || 0).toLocaleString('id-ID')}/12 jam</span>
+                            </div>
+                          </div>
+                        </label>
+                        <label style={{
+                          ...styles.deliveryOption,
+                          ...(formData.rentalDuration === '24h' ? styles.deliveryOptionActive : {}),
+                        }}>
+                          <input
+                            type="radio"
+                            name="rentalDuration"
+                            value="24h"
+                            checked={formData.rentalDuration === '24h'}
+                            onChange={handleChange}
+                            style={styles.radioInput}
+                          />
+                          <div style={styles.deliveryOptionContent}>
+                            <span style={styles.deliveryIcon}>📅</span>
+                            <div>
+                              <span style={styles.deliveryTitle}>24 Jam (1 Hari)</span>
+                              <span style={styles.deliveryDesc}>Rp {(vehicle?.price24h || 0).toLocaleString('id-ID')}/24 jam</span>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Zone Option for Motor */}
+                  {vehicle?.type === 'motor' && (
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>Zona Pemakaian *</label>
+                      <div style={styles.deliveryOptions}>
+                        <label style={{
+                          ...styles.deliveryOption,
+                          ...(formData.rentalZone === 'inCity' ? styles.deliveryOptionActive : {}),
+                        }}>
+                          <input
+                            type="radio"
+                            name="rentalZone"
+                            value="inCity"
+                            checked={formData.rentalZone === 'inCity'}
+                            onChange={handleChange}
+                            style={styles.radioInput}
+                          />
+                          <div style={styles.deliveryOptionContent}>
+                            <span style={styles.deliveryIcon}>🏙️</span>
+                            <div>
+                              <span style={styles.deliveryTitle}>Dalam Kota</span>
+                              <span style={styles.deliveryDesc}>Rp {(vehicle?.priceInCity || 0).toLocaleString('id-ID')}/hari</span>
+                            </div>
+                          </div>
+                        </label>
+                        <label style={{
+                          ...styles.deliveryOption,
+                          ...(formData.rentalZone === 'outCity' ? styles.deliveryOptionActive : {}),
+                        }}>
+                          <input
+                            type="radio"
+                            name="rentalZone"
+                            value="outCity"
+                            checked={formData.rentalZone === 'outCity'}
+                            onChange={handleChange}
+                            style={styles.radioInput}
+                          />
+                          <div style={styles.deliveryOptionContent}>
+                            <span style={styles.deliveryIcon}>🛣️</span>
+                            <div>
+                              <span style={styles.deliveryTitle}>Luar Kota</span>
+                              <span style={styles.deliveryDesc}>Rp {(vehicle?.priceOutCity || 0).toLocaleString('id-ID')}/hari</span>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                  )}
                   {/* Delivery Option */}
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Opsi Pengambilan *</label>
@@ -406,10 +559,15 @@ export default function SewaVehiclePage() {
                     <div style={styles.summary}>
                       <div style={styles.summaryRow}>
                         <span>Durasi Sewa</span>
-                        <span>{calculated.totalDays} hari</span>
+                        <span>
+                          {calculated.totalDays} hari
+                          {vehicle?.type === 'mobil' && formData.rentalDuration === '12h' && ` (${calculated.rentalUnits} x 12 jam)`}
+                        </span>
                       </div>
                       <div style={styles.summaryRow}>
-                        <span>Harga Sewa ({calculated.totalDays} x Rp {vehicle?.price?.toLocaleString('id-ID')})</span>
+                        <span>
+                          Harga Sewa ({calculated.rentalUnits} x Rp {(calculated.unitPrice || 0).toLocaleString('id-ID')})
+                        </span>
                         <span>Rp {calculated.rentalPrice.toLocaleString('id-ID')}</span>
                       </div>
                       <div style={styles.summaryRow}>
@@ -582,6 +740,37 @@ const styles = {
     borderRadius: '0.75rem',
     padding: '1rem',
     textAlign: 'center',
+  },
+  priceRowContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.25rem',
+  },
+  priceLabelSmall: {
+    fontSize: '0.85rem',
+    color: '#9a3412',
+    fontWeight: '500',
+  },
+  priceValueSmall: {
+    fontSize: '1.125rem',
+    fontWeight: '700',
+    color: '#f97316',
+  },
+  priceValueSmall24h: {
+    fontSize: '1.125rem',
+    fontWeight: '700',
+    color: '#22c55e',
+  },
+  priceValueSmallInCity: {
+    fontSize: '1.125rem',
+    fontWeight: '700',
+    color: '#3b82f6',
+  },
+  priceValueSmallOutCity: {
+    fontSize: '1.125rem',
+    fontWeight: '700',
+    color: '#8b5cf6',
   },
   priceLabel: {
     display: 'block',

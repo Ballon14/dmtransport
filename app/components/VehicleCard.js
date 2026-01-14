@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 export default function VehicleCard({ vehicle }) {
   const isMotor = vehicle.type === 'motor';
+  const isMobil = vehicle.type === 'mobil';
 
   return (
     <div style={styles.card}>
@@ -54,10 +55,29 @@ export default function VehicleCard({ vehicle }) {
         <div style={styles.footer}>
           <div style={styles.priceSection}>
             <span style={styles.priceLabel}>Mulai dari</span>
-            <div style={styles.price}>
-              <span style={styles.priceValue}>Rp {vehicle.price?.toLocaleString('id-ID')}</span>
-              <span style={styles.priceUnit}>/hari</span>
-            </div>
+            {isMobil ? (
+              <div style={styles.dualPrice}>
+                <div style={styles.priceRow}>
+                  <span style={styles.priceValue}>Rp {(vehicle.price12h || 0).toLocaleString('id-ID')}</span>
+                  <span style={styles.priceUnit}>/12 jam</span>
+                </div>
+                <div style={styles.priceRow}>
+                  <span style={styles.priceValue24h}>Rp {(vehicle.price24h || 0).toLocaleString('id-ID')}</span>
+                  <span style={styles.priceUnit}>/24 jam</span>
+                </div>
+              </div>
+            ) : (
+              <div style={styles.dualPrice}>
+                <div style={styles.priceRow}>
+                  <span style={styles.priceValueInCity}>Rp {(vehicle.priceInCity || 0).toLocaleString('id-ID')}</span>
+                  <span style={styles.priceUnit}>/hari (dlm kota)</span>
+                </div>
+                <div style={styles.priceRow}>
+                  <span style={styles.priceValueOutCity}>Rp {(vehicle.priceOutCity || 0).toLocaleString('id-ID')}</span>
+                  <span style={styles.priceUnit}>/hari (luar kota)</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         
@@ -230,6 +250,34 @@ const styles = {
     fontSize: '0.85rem',
     color: '#64748b',
     fontWeight: '500',
+  },
+  dualPrice: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.25rem',
+  },
+  priceRow: {
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: '0.25rem',
+  },
+  priceValue24h: {
+    fontSize: '1.125rem',
+    fontWeight: '700',
+    color: '#22c55e',
+    letterSpacing: '-0.02em',
+  },
+  priceValueInCity: {
+    fontSize: '1.125rem',
+    fontWeight: '700',
+    color: '#3b82f6',
+    letterSpacing: '-0.02em',
+  },
+  priceValueOutCity: {
+    fontSize: '1.125rem',
+    fontWeight: '700',
+    color: '#8b5cf6',
+    letterSpacing: '-0.02em',
   },
   actions: {
     display: 'flex',

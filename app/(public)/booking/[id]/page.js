@@ -292,13 +292,15 @@ export default function BookingDetailPage() {
                   </div>
                 </div>
 
-                {/* Payment Info */}
+                  {/* Payment Info */}
                 <div style={styles.infoSection}>
                   <h4 style={styles.infoTitle}>💳 Pembayaran</h4>
                   <div style={styles.paymentSummary}>
                     <div style={styles.paymentRow}>
-                      <span>Harga sewa ({booking?.totalDays} x Rp {booking?.pricePerDay?.toLocaleString('id-ID')})</span>
-                      <span>Rp {((booking?.totalDays || 0) * (booking?.pricePerDay || 0)).toLocaleString('id-ID')}</span>
+                      <span>
+                        Harga sewa ({booking?.rentalUnits || booking?.totalDays} x Rp {booking?.pricePerDay?.toLocaleString('id-ID')}/{booking?.priceUnit || 'hari'})
+                      </span>
+                      <span>Rp {((booking?.rentalUnits || booking?.totalDays || 0) * (booking?.pricePerDay || 0)).toLocaleString('id-ID')}</span>
                     </div>
                     <div style={styles.paymentRow}>
                       <span>Biaya Pengiriman</span>

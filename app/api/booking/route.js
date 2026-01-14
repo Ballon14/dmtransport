@@ -69,6 +69,8 @@ export async function POST(req) {
       notes,
       deliveryOption,
       deliveryAddress,
+      rentalDuration, // For mobil: '12h' or '24h'
+      rentalZone, // For motor: 'inCity' or 'outCity'
     } = body;
 
     // Validate required fields
@@ -121,9 +123,37 @@ export async function POST(req) {
     const diffTime = Math.abs(end - start);
     const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
     
+    const isMobil = vehicle.type === 'mobil';
+    let rentalUnits;
+    let unitPrice;
+    let priceUnit;
+    
+    if (isMobil) {
+      // For mobil: calculate based on selected duration (12h or 24h)
+      if (rentalDuration === '12h') {
+        rentalUnits = totalDays * 2; // 2 x 12-hour periods per day
+        unitPrice = vehicle.price12h || 0;
+        priceUnit = '12 jam';
+      } else {
+        rentalUnits = totalDays; // 1 x 24-hour period per day
+        unitPrice = vehicle.price24h || 0;
+        priceUnit = '24 jam';
+      }
+    } else {
+      // For motor: calculate based on zone (inCity or outCity)
+      rentalUnits = totalDays;
+      if (rentalZone === 'outCity') {
+        unitPrice = vehicle.priceOutCity || 0;
+        priceUnit = 'hari (luar kota)';
+      } else {
+        unitPrice = vehicle.priceInCity || 0;
+        priceUnit = 'hari (dalam kota)';
+      }
+    }
+    
     // Delivery cost: Rp 50.000 for delivery option
     const deliveryCost = deliveryOption === 'delivery' ? 50000 : 0;
-    const rentalPrice = totalDays * vehicle.price;
+    const rentalPrice = rentalUnits * unitPrice;
     const totalPrice = rentalPrice + deliveryCost;
 
     // Create booking
@@ -140,7 +170,9 @@ export async function POST(req) {
       startDate: start,
       endDate: end,
       totalDays,
-      pricePerDay: vehicle.price,
+      rentalUnits, // Number of rental units
+      priceUnit, // Unit label for display ('12 jam', '24 jam', or 'hari')
+      pricePerDay: unitPrice, // Price per rental unit
       deliveryOption: deliveryOption || 'self_pickup',
       deliveryCost,
       deliveryAddress: deliveryAddress || '',
