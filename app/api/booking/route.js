@@ -65,11 +65,12 @@ export async function POST(req) {
       customerPhone,
       customerAddress,
       startDate,
+      startTime, // For mobil: time to start rental
       endDate,
+      endTime, // For mobil: time to end rental
       notes,
       deliveryOption,
       deliveryAddress,
-      rentalDuration, // For mobil: '12h' or '24h'
       rentalZone, // For motor: 'inCity' or 'outCity'
     } = body;
 
@@ -117,31 +118,47 @@ export async function POST(req) {
       );
     }
 
-    // Calculate days and price
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end - start);
-    const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-    
+    // Calculate rental based on vehicle type
     const isMobil = vehicle.type === 'mobil';
     let rentalUnits;
     let unitPrice;
     let priceUnit;
+    let totalDays;
+    let totalHours = 0;
     
     if (isMobil) {
-      // For mobil: calculate based on selected duration (12h or 24h)
-      if (rentalDuration === '12h') {
-        rentalUnits = totalDays * 2; // 2 x 12-hour periods per day
+      // For mobil: calculate based on actual hours with tiered pricing
+      const startDateTime = new Date(`${startDate}T${startTime || '08:00'}:00`);
+      const endDateTime = new Date(`${endDate}T${endTime || '08:00'}:00`);
+      const diffMs = endDateTime - startDateTime;
+      totalHours = Math.max(diffMs / (1000 * 60 * 60), 0);
+      
+      // Tiered pricing:
+      // - ≤12 hours: 1 x price12h
+      // - >12 hours and ≤24 hours: 1 x price24h  
+      // - >24 hours: ceil(hours/24) x price24h
+      if (totalHours <= 12) {
+        rentalUnits = 1;
         unitPrice = vehicle.price12h || 0;
         priceUnit = '12 jam';
+      } else if (totalHours <= 24) {
+        rentalUnits = 1;
+        unitPrice = vehicle.price24h || 0;
+        priceUnit = '24 jam';
       } else {
-        rentalUnits = totalDays; // 1 x 24-hour period per day
+        rentalUnits = Math.ceil(totalHours / 24);
         unitPrice = vehicle.price24h || 0;
         priceUnit = '24 jam';
       }
+      totalDays = Math.ceil(totalHours / 24) || 1;
     } else {
-      // For motor: calculate based on zone (inCity or outCity)
+      // For motor: calculate based on days
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const diffTime = Math.abs(end - start);
+      totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
       rentalUnits = totalDays;
+      
       if (rentalZone === 'outCity') {
         unitPrice = vehicle.priceOutCity || 0;
         priceUnit = 'hari (luar kota)';
@@ -167,9 +184,10 @@ export async function POST(req) {
       customerName,
       customerPhone,
       customerAddress: customerAddress || '',
-      startDate: start,
-      endDate: end,
+      startDate: isMobil ? new Date(`${startDate}T${startTime || '08:00'}:00`) : new Date(startDate),
+      endDate: isMobil ? new Date(`${endDate}T${endTime || '08:00'}:00`) : new Date(endDate),
       totalDays,
+      totalHours: isMobil ? totalHours : undefined,
       rentalUnits, // Number of rental units
       priceUnit, // Unit label for display ('12 jam', '24 jam', or 'hari')
       pricePerDay: unitPrice, // Price per rental unit

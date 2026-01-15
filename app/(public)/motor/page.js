@@ -33,7 +33,10 @@ export default function MotorPage() {
   }, []);
 
   const availableCount = motors.filter(m => m.available).length;
-  const lowestPrice = motors.length > 0 ? Math.min(...motors.map(m => m.price)) : 0;
+  // For motor, use priceInCity as the starting price
+  const lowestPrice = motors.length > 0 
+    ? Math.min(...motors.map(m => m.priceInCity || m.price || 0).filter(p => p > 0)) 
+    : 0;
 
   return (
     <div style={styles.page}>

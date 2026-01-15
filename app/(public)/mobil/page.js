@@ -5,7 +5,7 @@ import VehicleCard from "../../components/VehicleCard";
 
 const infoItems = [
   { icon: "⏱️", text: "Durasi sewa minimal 12 jam" },
-  { icon: "👤", text: "Sewa dengan/tanpa sopir tersedia" },
+  { icon: "👤", text: "Sewa dengan/tanpa driver tersedia" },
   { icon: "🪪", text: "Deposit: KTP/SIM + uang jaminan" },
   { icon: "💰", text: "Diskon sewa mingguan/bulanan" },
 ];
@@ -32,7 +32,10 @@ export default function MobilPage() {
   }, []);
 
   const availableCount = cars.filter(c => c.available).length;
-  const lowestPrice = cars.length > 0 ? Math.min(...cars.map(c => c.price)) : 0;
+  // For mobil, use price12h as the starting price
+  const lowestPrice = cars.length > 0 
+    ? Math.min(...cars.map(c => c.price12h || c.price || 0).filter(p => p > 0)) 
+    : 0;
 
   return (
     <div style={styles.page}>

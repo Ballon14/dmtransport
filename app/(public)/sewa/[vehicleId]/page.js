@@ -21,11 +21,12 @@ export default function SewaVehiclePage() {
     customerPhone: '',
     customerAddress: '',
     startDate: '',
+    startTime: '08:00', // Default start time
     endDate: '',
+    endTime: '08:00', // Default end time
     notes: '',
     deliveryOption: 'self_pickup',
     deliveryAddress: '',
-    rentalDuration: '24h', // For mobil: '12h' or '24h'
     rentalZone: 'inCity', // For motor: 'inCity' or 'outCity'
   });
   
@@ -101,34 +102,62 @@ export default function SewaVehiclePage() {
     }
   }, [params.vehicleId]);
 
-  // Calculate price when dates or delivery option change
+  // Calculate price when dates/times or delivery option change
   useEffect(() => {
-    if (formData.startDate && formData.endDate && vehicle) {
-      const start = new Date(formData.startDate);
-      const end = new Date(formData.endDate);
-      const diffTime = Math.abs(end - start);
-      const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
-      
-      const isMobil = vehicle.type === 'mobil';
+    const isMobil = vehicle?.type === 'mobil';
+    
+    // For mobil: need both date and time
+    // For motor: need only dates
+    const hasRequiredFields = isMobil 
+      ? (formData.startDate && formData.startTime && formData.endDate && formData.endTime)
+      : (formData.startDate && formData.endDate);
+    
+    if (hasRequiredFields && vehicle) {
       let rentalUnits;
       let unitPrice;
+      let priceLabel;
+      let totalHours = 0;
+      let totalDays = 0;
       
       if (isMobil) {
-        // For mobil: calculate based on selected duration (12h or 24h)
-        if (formData.rentalDuration === '12h') {
-          rentalUnits = days * 2; // 2 x 12-hour periods per day
+        // For mobil: calculate based on actual hours with tiered pricing
+        const startDateTime = new Date(`${formData.startDate}T${formData.startTime}:00`);
+        const endDateTime = new Date(`${formData.endDate}T${formData.endTime}:00`);
+        const diffMs = endDateTime - startDateTime;
+        totalHours = Math.max(diffMs / (1000 * 60 * 60), 0);
+        
+        // Tiered pricing:
+        // - ≤12 hours: 1 x price12h
+        // - >12 hours and ≤24 hours: 1 x price24h  
+        // - >24 hours: ceil(hours/24) x price24h
+        if (totalHours <= 12) {
+          rentalUnits = 1;
           unitPrice = vehicle.price12h || 0;
-        } else {
-          rentalUnits = days; // 1 x 24-hour period per day
+          priceLabel = '12 jam';
+        } else if (totalHours <= 24) {
+          rentalUnits = 1;
           unitPrice = vehicle.price24h || 0;
+          priceLabel = '24 jam';
+        } else {
+          rentalUnits = Math.ceil(totalHours / 24);
+          unitPrice = vehicle.price24h || 0;
+          priceLabel = '24 jam';
         }
+        totalDays = Math.ceil(totalHours / 24) || 1;
       } else {
-        // For motor: calculate based on zone (inCity or outCity)
-        rentalUnits = days;
+        // For motor: calculate based on days
+        const start = new Date(formData.startDate);
+        const end = new Date(formData.endDate);
+        const diffTime = Math.abs(end - start);
+        totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+        rentalUnits = totalDays;
+        
         if (formData.rentalZone === 'outCity') {
           unitPrice = vehicle.priceOutCity || 0;
+          priceLabel = 'hari (luar kota)';
         } else {
           unitPrice = vehicle.priceInCity || 0;
+          priceLabel = 'hari (dalam kota)';
         }
       }
       
@@ -136,15 +165,17 @@ export default function SewaVehiclePage() {
       const deliveryCost = formData.deliveryOption === 'delivery' ? DELIVERY_COST : 0;
       
       setCalculated({
-        totalDays: days,
+        totalDays,
+        totalHours,
         rentalUnits,
         unitPrice,
+        priceLabel,
         rentalPrice,
         deliveryCost,
         totalPrice: rentalPrice + deliveryCost,
       });
     }
-  }, [formData.startDate, formData.endDate, formData.deliveryOption, formData.rentalDuration, formData.rentalZone, vehicle]);
+  }, [formData.startDate, formData.startTime, formData.endDate, formData.endTime, formData.deliveryOption, formData.rentalZone, vehicle]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -236,6 +267,38 @@ export default function SewaVehiclePage() {
         strategy="lazyOnload"
       />
 
+      {/* Responsive CSS */}
+      <style jsx global>{`
+        @media (max-width: 900px) {
+          .sewa-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .sewa-vehicle-card {
+            position: relative !important;
+            top: 0 !important;
+          }
+        }
+        @media (max-width: 600px) {
+          .sewa-form-row {
+            grid-template-columns: 1fr !important;
+          }
+          .sewa-datetime-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+          .sewa-datetime-row input[type="time"] {
+            width: 100% !important;
+          }
+          .sewa-summary-row {
+            flex-direction: column !important;
+            gap: 0.25rem !important;
+          }
+          .sewa-summary-row span:first-child {
+            font-size: 0.85rem !important;
+          }
+        }
+      `}</style>
+
       <div style={styles.page}>
         {/* Header */}
         <section style={styles.header}>
@@ -248,9 +311,9 @@ export default function SewaVehiclePage() {
         {/* Content */}
         <section style={styles.section}>
           <div style={styles.container}>
-            <div style={styles.grid}>
+            <div style={styles.grid} className="sewa-grid">
               {/* Vehicle Info */}
-              <div style={styles.vehicleCard}>
+              <div style={styles.vehicleCard} className="sewa-vehicle-card">
                 <div style={styles.vehicleImage}>
                   {vehicle?.image ? (
                     <img 
@@ -355,78 +418,82 @@ export default function SewaVehiclePage() {
                     />
                   </div>
 
-                  <div style={styles.formRow}>
-                    <div style={styles.formGroup}>
-                      <label style={styles.label}>Tanggal Mulai *</label>
-                      <input
-                        type="date"
-                        name="startDate"
-                        value={formData.startDate}
-                        onChange={handleChange}
-                        min={today}
-                        required
-                        style={styles.input}
-                      />
-                    </div>
-                    <div style={styles.formGroup}>
-                      <label style={styles.label}>Tanggal Selesai *</label>
-                      <input
-                        type="date"
-                        name="endDate"
-                        value={formData.endDate}
-                        onChange={handleChange}
-                        min={formData.startDate || today}
-                        required
-                        style={styles.input}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Duration Option for Mobil */}
-                  {vehicle?.type === 'mobil' && (
-                    <div style={styles.formGroup}>
-                      <label style={styles.label}>Durasi Sewa per Hari *</label>
-                      <div style={styles.deliveryOptions}>
-                        <label style={{
-                          ...styles.deliveryOption,
-                          ...(formData.rentalDuration === '12h' ? styles.deliveryOptionActive : {}),
-                        }}>
+                  {/* Date and Time inputs for Mobil, Date-only for Motor */}
+                  {vehicle?.type === 'mobil' ? (
+                    <>
+                      {/* Start Date & Time */}
+                      <div style={styles.formGroup}>
+                        <label style={styles.label}>Waktu Mulai Sewa *</label>
+                        <div style={styles.dateTimeRow} className="sewa-datetime-row">
                           <input
-                            type="radio"
-                            name="rentalDuration"
-                            value="12h"
-                            checked={formData.rentalDuration === '12h'}
+                            type="date"
+                            name="startDate"
+                            value={formData.startDate}
                             onChange={handleChange}
-                            style={styles.radioInput}
+                            min={today}
+                            required
+                            style={{...styles.input, flex: 1}}
                           />
-                          <div style={styles.deliveryOptionContent}>
-                            <span style={styles.deliveryIcon}>⏱️</span>
-                            <div>
-                              <span style={styles.deliveryTitle}>12 Jam</span>
-                              <span style={styles.deliveryDesc}>Rp {(vehicle?.price12h || 0).toLocaleString('id-ID')}/12 jam</span>
-                            </div>
-                          </div>
-                        </label>
-                        <label style={{
-                          ...styles.deliveryOption,
-                          ...(formData.rentalDuration === '24h' ? styles.deliveryOptionActive : {}),
-                        }}>
                           <input
-                            type="radio"
-                            name="rentalDuration"
-                            value="24h"
-                            checked={formData.rentalDuration === '24h'}
+                            type="time"
+                            name="startTime"
+                            value={formData.startTime}
                             onChange={handleChange}
-                            style={styles.radioInput}
+                            required
+                            style={{...styles.input, width: '130px'}}
                           />
-                          <div style={styles.deliveryOptionContent}>
-                            <span style={styles.deliveryIcon}>📅</span>
-                            <div>
-                              <span style={styles.deliveryTitle}>24 Jam (1 Hari)</span>
-                              <span style={styles.deliveryDesc}>Rp {(vehicle?.price24h || 0).toLocaleString('id-ID')}/24 jam</span>
-                            </div>
-                          </div>
-                        </label>
+                        </div>
+                      </div>
+                      
+                      {/* End Date & Time */}
+                      <div style={styles.formGroup}>
+                        <label style={styles.label}>Waktu Selesai Sewa *</label>
+                        <div style={styles.dateTimeRow} className="sewa-datetime-row">
+                          <input
+                            type="date"
+                            name="endDate"
+                            value={formData.endDate}
+                            onChange={handleChange}
+                            min={formData.startDate || today}
+                            required
+                            style={{...styles.input, flex: 1}}
+                          />
+                          <input
+                            type="time"
+                            name="endTime"
+                            value={formData.endTime}
+                            onChange={handleChange}
+                            required
+                            style={{...styles.input, width: '130px'}}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div style={styles.formRow} className="sewa-form-row">
+                      <div style={styles.formGroup}>
+                        <label style={styles.label}>Tanggal Mulai *</label>
+                        <input
+                          type="date"
+                          name="startDate"
+                          value={formData.startDate}
+                          onChange={handleChange}
+                          min={today}
+                          required
+                          style={styles.input}
+                        />
+                      </div>
+                      <div style={styles.formGroup}>
+                        <label style={styles.label}>Tanggal Selesai *</label>
+                        <input
+                          type="date"
+                          name="endDate"
+                          value={formData.endDate}
+                          onChange={handleChange}
+                          min={formData.startDate || today}
+                          required
+                          style={styles.input}
+                        />
                       </div>
                     </div>
                   )}
@@ -555,22 +622,24 @@ export default function SewaVehiclePage() {
                   </div>
 
                   {/* Summary */}
-                  {calculated.totalDays > 0 && (
+                  {(calculated.rentalUnits > 0) && (
                     <div style={styles.summary}>
-                      <div style={styles.summaryRow}>
+                      <div style={styles.summaryRow} className="sewa-summary-row">
                         <span>Durasi Sewa</span>
                         <span>
-                          {calculated.totalDays} hari
-                          {vehicle?.type === 'mobil' && formData.rentalDuration === '12h' && ` (${calculated.rentalUnits} x 12 jam)`}
+                          {vehicle?.type === 'mobil' 
+                            ? `${Math.floor(calculated.totalHours)} jam`
+                            : `${calculated.totalDays} hari`
+                          }
                         </span>
                       </div>
-                      <div style={styles.summaryRow}>
+                      <div style={styles.summaryRow} className="sewa-summary-row">
                         <span>
-                          Harga Sewa ({calculated.rentalUnits} x Rp {(calculated.unitPrice || 0).toLocaleString('id-ID')})
+                          Harga Sewa ({calculated.rentalUnits} x Rp {(calculated.unitPrice || 0).toLocaleString('id-ID')}/{calculated.priceLabel || 'hari'})
                         </span>
                         <span>Rp {calculated.rentalPrice.toLocaleString('id-ID')}</span>
                       </div>
-                      <div style={styles.summaryRow}>
+                      <div style={styles.summaryRow} className="sewa-summary-row">
                         <span>Biaya Pengiriman</span>
                         <span style={{ color: calculated.deliveryCost > 0 ? '#ea580c' : '#22c55e' }}>
                           {calculated.deliveryCost > 0 
@@ -578,7 +647,7 @@ export default function SewaVehiclePage() {
                             : 'Gratis'}
                         </span>
                       </div>
-                      <div style={styles.summaryTotal}>
+                      <div style={styles.summaryTotal} className="sewa-summary-row">
                         <span>Total Pembayaran</span>
                         <span style={styles.totalPrice}>
                           Rp {calculated.totalPrice.toLocaleString('id-ID')}
@@ -818,6 +887,11 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
     gap: '1rem',
+  },
+  dateTimeRow: {
+    display: 'flex',
+    gap: '0.75rem',
+    alignItems: 'center',
   },
   label: {
     fontSize: '0.9rem',

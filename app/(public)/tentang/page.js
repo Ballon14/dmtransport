@@ -1,15 +1,43 @@
 import Image from 'next/image';
+import connectDB from '@/lib/mongodb';
+import Vehicle from '@/lib/models/Vehicle';
+import Booking from '@/lib/models/Booking';
 
 export const metadata = {
   title: "Tentang Kami | DM Transport Purworejo",
   description: "Mengenal lebih dekat DM Transport Purworejo - penyedia jasa penyewaan kendaraan terpercaya sejak 2012.",
 };
 
-export default function TentangPage() {
+async function getStats() {
+  try {
+    await connectDB();
+    
+    // Get vehicle count
+    const vehicleCount = await Vehicle.countDocuments();
+    
+    // Get completed/paid bookings count (satisfied customers)
+    const customerCount = await Booking.countDocuments({ paymentStatus: 'paid' });
+    
+    return {
+      vehicleCount,
+      customerCount,
+    };
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    return {
+      vehicleCount: 0,
+      customerCount: 0,
+    };
+  }
+}
+
+export default async function TentangPage() {
+  const { vehicleCount, customerCount } = await getStats();
+  
   const stats = [
     { number: "12+", label: "Tahun Pengalaman" },
-    { number: "50+", label: "Unit Kendaraan" },
-    { number: "1000+", label: "Pelanggan Puas" },
+    { number: `${vehicleCount}+`, label: "Unit Kendaraan" },
+    { number: `${customerCount}+`, label: "Pelanggan Puas" },
     { number: "24/7", label: "Layanan Nonstop" },
   ];
 

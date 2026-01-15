@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useAuth, UserButton, SignInButton } from '@clerk/nextjs';
+import { useAuth, UserButton, SignInButton, useClerk, useUser } from '@clerk/nextjs';
 
 export default function Navbar() {
   const { isLoaded, isSignedIn, userId } = useAuth();
+  const { signOut } = useClerk();
+  const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -145,9 +147,11 @@ export default function Navbar() {
       {isMobile && (
         <div style={{
           ...styles.mobileMenu,
-          maxHeight: isOpen ? '400px' : '0',
+          maxHeight: isOpen ? '500px' : '0',
           opacity: isOpen ? 1 : 0,
-          padding: isOpen ? '1rem 1.5rem 1.5rem' : '0 1.5rem',
+          paddingTop: isOpen ? '0.5rem' : '0',
+          paddingBottom: isOpen ? '0.5rem' : '0',
+          visibility: isOpen ? 'visible' : 'hidden',
         }}>
           {navLinks.map((link) => (
             <Link
@@ -169,12 +173,38 @@ export default function Navbar() {
                   </Link>
                   {isAdmin && (
                     <Link href="/admin" style={styles.mobileNavLink} onClick={() => setIsOpen(false)}>
-                      Admin Panel
+                    Admin Panel
                     </Link>
                   )}
-                  <div style={styles.mobileUserArea}>
-                    <UserButton afterSignOutUrl="/" />
-                    <span style={styles.mobileUserText}>Akun Saya</span>
+                  
+                  {/* Account Section */}
+                  <div style={styles.mobileAccountSection}>
+                    <div style={styles.mobileAccountHeader}>
+                      <div style={styles.mobileAvatarWrapper}>
+                        <UserButton 
+                          afterSignOutUrl="/" 
+                          appearance={{
+                            elements: {
+                              avatarBox: {
+                                width: 48,
+                                height: 48,
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                      <div style={styles.mobileAccountInfo}>
+                        <span style={styles.mobileAccountName}>
+                          {user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split('@')[0] || 'Pengguna'}
+                        </span>
+                        <span style={styles.mobileAccountEmail}>
+                          {user?.emailAddresses?.[0]?.emailAddress || ''}
+                        </span>
+                        <span style={styles.mobileAccountHint}>
+                          Tap foto untuk kelola akun
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </>
               ) : (
@@ -293,21 +323,26 @@ const styles = {
     transition: 'all 0.2s ease',
   },
   mobileMenuBtn: {
-    background: 'transparent',
-    border: 'none',
+    background: 'rgba(255,255,255,0.1)',
+    border: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: '8px',
     cursor: 'pointer',
-    padding: '0.5rem',
+    padding: '10px',
     display: 'flex',
     flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
     gap: '5px',
-    width: '30px',
+    width: '44px',
+    height: '44px',
   },
   hamburgerLine: {
-    width: '100%',
-    height: '2px',
+    width: '22px',
+    height: '2.5px',
     background: 'white',
     borderRadius: '2px',
     transition: 'all 0.3s ease',
+    transformOrigin: 'center',
   },
   mobileMenu: {
     display: 'flex',
@@ -316,14 +351,23 @@ const styles = {
     background: 'rgba(30, 58, 95, 0.98)',
     overflow: 'hidden',
     transition: 'all 0.3s ease',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: '100%',
+    boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
   },
   mobileNavLink: {
     color: 'white',
     textDecoration: 'none',
-    padding: '0.875rem 0',
+    padding: '1rem 1.5rem',
     borderBottom: '1px solid rgba(255,255,255,0.08)',
     fontSize: '1rem',
     fontWeight: '500',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    transition: 'background 0.2s ease',
   },
   mobileCta: {
     background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
@@ -333,22 +377,128 @@ const styles = {
     textDecoration: 'none',
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: '1rem',
+    margin: '1rem 1.5rem',
     border: 'none',
     cursor: 'pointer',
-    width: '100%',
+    width: 'calc(100% - 3rem)',
     fontSize: '1rem',
+    boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
+  },
+  // Mobile Account Section
+  mobileAccountSection: {
+    background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+    borderTop: '1px solid rgba(255,255,255,0.1)',
+    padding: '1.25rem 1.5rem',
+    marginTop: '0.5rem',
+  },
+  mobileAccountHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    marginBottom: '1rem',
+  },
+  mobileAvatarWrapper: {
+    width: '50px',
+    height: '50px',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    border: '2px solid rgba(249, 115, 22, 0.5)',
+    boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+  },
+  mobileAvatar: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
+  mobileAvatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.25rem',
+    color: 'white',
+    fontWeight: '700',
+  },
+  mobileAccountInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.125rem',
+    flex: 1,
+  },
+  mobileAccountName: {
+    color: 'white',
+    fontSize: '1rem',
+    fontWeight: '600',
+  },
+  mobileAccountEmail: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: '0.8rem',
+  },
+  mobileAccountHint: {
+    color: '#f97316',
+    fontSize: '0.75rem',
+    marginTop: '0.25rem',
+    fontWeight: '500',
+  },
+  mobileAccountActions: {
+    display: 'flex',
+    gap: '0.75rem',
+  },
+  mobileAccountBtn: {
+    flex: 1,
+    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+    border: 'none',
+    color: 'white',
+    padding: '0.875rem 1rem',
+    borderRadius: '0.625rem',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    boxShadow: '0 2px 10px rgba(59, 130, 246, 0.3)',
+  },
+  mobileLogoutBtn: {
+    flex: 1,
+    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+    border: 'none',
+    color: 'white',
+    padding: '0.875rem 1rem',
+    borderRadius: '0.625rem',
+    fontSize: '0.9rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    boxShadow: '0 2px 10px rgba(239, 68, 68, 0.3)',
   },
   mobileUserArea: {
     display: 'flex',
     alignItems: 'center',
     gap: '1rem',
-    padding: '1rem 0',
+    padding: '1rem 1.5rem',
     marginTop: '0.5rem',
+    borderTop: '1px solid rgba(255,255,255,0.1)',
+    background: 'rgba(255,255,255,0.05)',
+  },
+  userButtonWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+  },
+  mobileUserInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.125rem',
   },
   mobileUserText: {
     color: 'white',
     fontSize: '0.95rem',
     fontWeight: '500',
+  },
+  mobileUserHint: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: '0.75rem',
   },
 };

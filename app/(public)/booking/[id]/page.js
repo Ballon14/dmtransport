@@ -235,6 +235,13 @@ export default function BookingDetailPage() {
                         {new Date(booking?.startDate).toLocaleDateString('id-ID', {
                           weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
                         })}
+                        {booking?.vehicleType === 'mobil' && (
+                          <span style={styles.timeValue}>
+                            {' • '}{new Date(booking?.startDate).toLocaleTimeString('id-ID', {
+                              hour: '2-digit', minute: '2-digit'
+                            })}
+                          </span>
+                        )}
                       </span>
                     </div>
                     <div style={styles.dateSeparator}>→</div>
@@ -244,10 +251,22 @@ export default function BookingDetailPage() {
                         {new Date(booking?.endDate).toLocaleDateString('id-ID', {
                           weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
                         })}
+                        {booking?.vehicleType === 'mobil' && (
+                          <span style={styles.timeValue}>
+                            {' • '}{new Date(booking?.endDate).toLocaleTimeString('id-ID', {
+                              hour: '2-digit', minute: '2-digit'
+                            })}
+                          </span>
+                        )}
                       </span>
                     </div>
                   </div>
-                  <p style={styles.daysInfo}>Durasi: {booking?.totalDays} hari</p>
+                  <p style={styles.daysInfo}>
+                    Durasi: {booking?.vehicleType === 'mobil' 
+                      ? `${Math.floor(booking?.totalHours || 0)} jam (${booking?.rentalUnits || 1} x ${booking?.priceUnit || '24 jam'})`
+                      : `${booking?.totalDays} hari`
+                    }
+                  </p>
                 </div>
 
                 {/* Customer Info */}
@@ -496,6 +515,7 @@ const styles = {
   dateItem: { flex: 1, minWidth: '200px' },
   dateLabel: { display: 'block', fontSize: '0.8rem', color: '#64748b', marginBottom: '0.25rem' },
   dateValue: { fontWeight: '600', color: '#0f172a' },
+  timeValue: { color: '#f97316', fontWeight: '500' },
   dateSeparator: { color: '#94a3b8', fontSize: '1.25rem' },
   daysInfo: { marginTop: '0.75rem', fontSize: '0.9rem', color: '#64748b' },
   infoGrid: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
